@@ -147,6 +147,15 @@ def Move_sun():
                     math.radians(-Sun.AzNorth)))
         except:
             pass
+        
+    if Sun.PowerObject_verified:
+        if not Sun.PowerObjectLabels_created:
+            Sun.create_power_labels()
+        Sun.set_powers()
+    else:
+        if Sun.PowerObjectLabels_created:
+            Sun.delete_power_labels()
+                
 
     if totalObjects < 1 or not Sun.UseObjectGroup:
         return False

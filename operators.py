@@ -115,12 +115,16 @@ class ControlClass:
             sp.HDR_texture != Sun.HDR_texture or
             sp.UseSunObject != Sun.UseSunObject or
             sp.SunObject != Sun.SunObject or
+            sp.PowerShowObject != Sun.PowerShowObject or
             sp.UseObjectGroup != Sun.UseObjectGroup or
             sp.ObjectGroup != Sun.ObjectGroup or
             sp.DaylightSavings != Sun.DaylightSavings or
             sp.ShowRefraction != Sun.ShowRefraction or
             sp.ShowNorth != Sun.ShowNorth or
-            sp.NorthOffset != Sun.NorthOffset):
+            sp.NorthOffset != Sun.NorthOffset or
+            sp.PowerOneMeter != Sun.PowerOneMeter or
+            sp.EffectiveAngle != Sun.EffectiveAngle
+            ):
 
             Sun.Time = sp.Time
             Sun.TimeSpread = sp.TimeSpread
@@ -134,12 +138,16 @@ class ControlClass:
             Sun.HDR_texture = sp.HDR_texture
             Sun.UseSunObject = sp.UseSunObject
             Sun.SunObject = sp.SunObject
+            Sun.PowerShowObject = sp.PowerShowObject
             Sun.UseObjectGroup = sp.UseObjectGroup
             Sun.ObjectGroup = sp.ObjectGroup
             Sun.DaylightSavings = sp.DaylightSavings
             Sun.ShowRefraction = sp.ShowRefraction
             Sun.ShowNorth = sp.ShowNorth
             Sun.NorthOffset = sp.NorthOffset
+            Sun.PowerOneMeter = sp.PowerOneMeter
+            Sun.EffectiveAngle = sp.EffectiveAngle
+            
             return True
         return False
 

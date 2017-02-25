@@ -19,7 +19,7 @@ class SunPos_Panel(bpy.types.Panel):
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_context = "world"
-    bl_label = "Sun Position"
+    bl_label = "Sun Position and Power"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
@@ -494,6 +494,33 @@ class SunPos_Panel(bpy.types.Panel):
             else:
                 colL.label(text=tss, icon='SOLO_ON')
 
+        box = self.layout.box()
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        split = col.split(percentage=.5)
+        cL = split.column()
+        cR = split.column()
+        cL.alignment = 'LEFT'
+        cR.alignment = 'RIGHT'
+        cLi = cRi = 1
+        cR.prop(sp, "ShowPowerOnObject", text="Show power on object")
+        if(sp.ShowPowerOnObject):
+            cR.prop_search(sp, "PowerShowObject",
+                context.scene, "objects", text="")
+            cRi += 1
+            if sp.PowerShowObject:
+                Sun.check_power_obj(sp.PowerShowObject)
+            else:
+                Sun.PowerObject_verified = False
+        else:
+            Sun.PowerObject_verified = False
+        cL.prop(sp, "PowerOneMeter", text="Power on one squer meter")
+        cRi += 1
+        cL.prop(sp, "EffectiveAngle", text="Effective angle for get power")
+
+        
 ############################################################################
 
 

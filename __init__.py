@@ -32,18 +32,18 @@
 # <pep8 compliant>
 
 bl_info = {
-    "name": "Sun Position",
-    "author": "Michael Martin",
-    "version": (3, 0, 1),
+    "name": "Sun Power",
+    "author": "Yaroslav Pisarev",
+    "version": (0, 0, 1),
     "blender": (2, 6, 5),
     "api": 53207,
-    "location": "World > Sun Position",
-    "description": "Show sun position with objects and/or sky texture",
+    "location": "World > Sun Power",
+    "description": "Show sun position and power with objects and/or sky texture",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Extensions:2.6/Py/" \
-        "Scripts/3D_interaction/Sun_Position",
-        "tracker_url": "https://projects.blender.org/tracker/" \
-        "index.php?func=detail&aid=29714",
+    "wiki_url": "" \
+        "Scripts/3D_interaction/Sun_Power",
+        "tracker_url": "" \
+        "",
     "category": "3D View"}
 
 import bpy

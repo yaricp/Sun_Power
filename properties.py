@@ -1,4 +1,10 @@
 import bpy
+import bmesh
+import math
+from math import degrees, cos, radians
+from mathutils import Vector 
+
+from . utils import *
 
 
 class DisplayAction:
@@ -86,9 +92,18 @@ class SunClass:
     ShowRiseSet = True
     ShowRefraction = True
     NorthOffset = 0.0
+    
+    TotalPower = 0.0
+    CountFaces = 0
+    IndexFaceMaxPower = 0
+    FaceMaxPower = 0.0
+    
+    PowerOneMeter = 650.0
+    EffectiveAngle = 65.0
 
     UseSunObject = False
     SunObject = "Sun"
+    PowerShowObject = "Icosphere"
 
     UseSkyTexture = False
     SkyTexture = "Sky Texture"
@@ -99,6 +114,8 @@ class SunClass:
     Selected_objects = []
     Selected_names = []
     ObjectGroup_verified = False
+    PowerObject_verified = False
+    PowerObjectLabels_created = False
 
     PreBlend_handler = None
     Frame_handler = None
@@ -122,6 +139,135 @@ class SunClass:
                         del self.Selected_names[:]
                         break
             self.ObjectGroup_verified = True
+            
+    def check_power_obj(self, obj_name):
+        obj = bpy.context.scene.objects.get(obj_name)
+        if 'polygons' in str(dir(obj.data)):
+            Sun.PowerObject_verified = True
+            
+    def get_max_vert(self, obj):
+        list = []
+        for b in obj.bound_box:
+            for v in b:
+                list.append(v)
+        return max(list)-1
+        
+    def create_total_labels(self, obj):
+        max_co = self.get_max_vert(obj)
+        bpy.ops.object.text_add(location=(max_co,max_co,max_co))
+        tot_power_label = bpy.context.object
+        tot_power_label.data.body = "Total Power: 0"
+        tot_power_label.name = 'tot_power_label'
+        tot_power_label.scale = (0.3,0.3,0.3)
+        bpy.ops.object.text_add(location=(max_co,max_co,max_co+0.5))
+        face_power_label = bpy.context.object
+        face_power_label.data.body = "Face power: 0"
+        face_power_label.name = 'face_power_label'
+        face_power_label.scale = (0.3,0.3,0.3)
+        bpy.ops.object.text_add(location=(max_co,max_co,max_co+1))
+        count_face_label = bpy.context.object
+        count_face_label.data.body = "Count work faces: 0"
+        count_face_label.name = 'count_face_label'
+        count_face_label.scale = (0.3,0.3,0.3)
+        tot_power_label.convert_space(from_space='WORLD', to_space='LOCAL')
+        tot_power_label.rotation_mode = 'XYZ'
+        tot_power_label.rotation_euler = (radians(90),0,0)
+        face_power_label.convert_space(from_space='WORLD', to_space='LOCAL')
+        face_power_label.rotation_mode = 'XYZ'
+        face_power_label.rotation_euler = (radians(90),0,0)
+        count_face_label.convert_space(from_space='WORLD', to_space='LOCAL')
+        count_face_label.rotation_mode = 'XYZ'
+        count_face_label.rotation_euler = (radians(90),0,0)
+        bpy.context.scene.update()
+        
+    def create_power_labels(self):
+        obj = bpy.context.scene.objects.get(Sun.PowerShowObject)
+        self.create_total_labels(obj)
+        mat_world = obj.matrix_world
+        cam = bpy.context.scene.objects['Camera']
+        cam_center = cam.location
+        for poly in obj.data.polygons:
+            text_name = obj.name+'_text_'+str(poly.index).replace('.', '_')
+            bpy.ops.object.text_add(location=mat_world * Vector(poly.center))
+            myFontOb = bpy.context.object
+            myFontOb.data.body = "0"
+            myFontOb.name = text_name
+            myFontOb.data.align = 'CENTER'
+            myFontOb.scale = (0.3,0.3,0.3)
+            obj.rotation_mode = 'QUATERNION'
+            cam_norm = obj.rotation_quaternion * poly.normal
+            fnorm = Vector((-1,0,0))
+            axis = fnorm.cross(cam_norm)
+            dot = fnorm.normalized().dot(cam_norm.normalized())
+            dot = clamp(dot, -1.0, 1.0)
+            if axis.length < 1.0e-8:
+                axis = Vector(get_ortho(fnorm.x, fnorm.y, fnorm.z))
+            myFontOb.rotation_mode = 'AXIS_ANGLE'
+            myFontOb.rotation_axis_angle = [math.acos(dot) + math.pi, 
+                                            axis[0],
+                                            axis[1],
+                                            axis[2]]
+            myFontOb.convert_space(from_space='WORLD', to_space='LOCAL')
+            myFontOb.rotation_mode = 'XYZ'
+            myFontOb.rotation_euler = (radians(90),
+                                        0,
+                                        myFontOb.rotation_euler[2]+radians(90))
+            bpy.context.scene.update()
+            self.PowerObjectLabels_created = True
+    
+    def delete_power_labels(self):
+        for label in bpy.data.objects:
+            if '_text_' in label.name and label.type == 'FONT':
+                label.select = True
+                bpy.ops.object.delete()
+        self.PowerObjectLabels_created = False
+        
+    def set_powers(self):
+        SunObj = bpy.context.scene.objects.get(Sun.SunObject)
+        sun_vec = SunObj.location
+        sun_mx = SunObj.matrix_world
+        obj = bpy.context.scene.objects.get(Sun.PowerShowObject)
+        sun_powers = []
+        sun_angles_dict = {}
+        self.TotalPower = 0.0
+        sun_power = 0.0
+        self.CountFaces = 0
+        for poly in obj.data.polygons:
+            text_name = obj.name+'_text_'+str(poly.index).replace('.', '_')
+            sun_ang = sun_vec.angle(obj.matrix_world * poly.normal)
+            sun_power = self.PowerOneMeter*poly.area*cos(sun_ang)
+            if (sun_power > 0 and 
+                sun_vec.z > 0 and 
+                sun_ang < self.EffectiveAngle):
+                self.CountFaces += 1
+                self.TotalPower += sun_power
+                sun_powers.append(round(sun_power, 2))
+                sun_angles_dict.update({round(sun_power, 2):(poly.index,degrees(sun_ang),
+                                                round(sun_power, 2))})
+                print((poly.index,degrees(sun_ang),sun_power))
+                value = str(round(sun_power,2))
+            else:
+                value = 0
+            text_obj = bpy.data.objects[text_name]
+            text_obj.data.body = '('+str(poly.index)+') '+str(value)
+            set_color(text_obj, value)
+            bpy.context.scene.update()
+            if sun_angles_dict and sun_powers:
+                max_power = max(sun_powers)
+                self.IndexFaceMaxPower = sun_angles_dict[max_power][0]
+                self.FaceMaxPower = max_power
+                tot_power_label = bpy.data.objects['tot_power_label']
+                tot_power_label.data.body = 'Total Power: '+str(round(self.TotalPower, 2))+' W'
+                face_power_label = bpy.data.objects['face_power_label']
+                face_power_label.data.body = 'Face power: '\
+                                            +'('+str(self.IndexFaceMaxPower)+') '\
+                                            +str(max_power)+' W'
+                set_color(face_power_label, max_power)
+                count_face_label = bpy.data.objects['count_face_label']
+                count_face_label.data.body = 'Count work faces: '+str(self.CountFaces)
+                set_color(count_face_label, max_power)
+                bpy.context.scene.update()
+        
 
 Sun = SunClass()
 
@@ -224,11 +370,40 @@ class SunPosSettings(bpy.types.PropertyGroup):
     UseSunObject = bpy.props.BoolProperty(
         description="Enable sun positioning of named lamp or mesh",
         default=False)
+        
+    ShowPowerOnObject = bpy.props.BoolProperty(
+        description="Enable show power in faces of object",
+        default=False)
+        
+    EffectiveAngle = FloatProperty(
+        attr="",
+        name="EffectiveAngle",
+        description="Effective angle bettwen sun rays and normal of face for get power",
+        unit="ROTATION",
+        soft_min=-3.14159265, 
+        soft_max=3.14159265, 
+        step=10.00,
+        default=radians(Sun.EffectiveAngle))
+        
+    PowerOneMeter = FloatProperty(
+        attr="",
+        name="PowerOneMeter",
+        description="Power on one squer meter for this region",
+        unit="LENGTH",
+        soft_min=1,
+        soft_max=3000.00,
+        step=10.00,
+        default=Sun.PowerOneMeter)
 
     SunObject = StringProperty(
         default="Sun",
         name="theSun",
         description="Name of sun object")
+        
+    PowerShowObject = StringProperty(
+        default="Icosphere",
+        name="thePowerObject",
+        description="Name of power object")
 
     UseSkyTexture = bpy.props.BoolProperty(
         description="Enable use of Cycles' "

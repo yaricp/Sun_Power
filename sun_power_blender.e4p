@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project sun_power_blender -->
-<!-- Saved: 2017-02-25, 01:24:28 -->
+<!-- Saved: 2017-02-25, 17:36:49 -->
 <!-- Copyright (C) 2017 yaricp, yaricp@gmail.com -->
 <Project version="5.1">
   <Language></Language>
@@ -12,6 +12,7 @@
   <Version>0.1</Version>
   <Author>yaricp</Author>
   <Email>yaricp@gmail.com</Email>
+  <Eol index="-1"/>
   <Sources>
     <Source>__init__.py</Source>
     <Source>operators.py</Source>
@@ -21,6 +22,7 @@
     <Source>properties.py</Source>
     <Source>sun_calc.py</Source>
     <Source>ui_sun.py</Source>
+    <Source>utils.py</Source>
   </Sources>
   <Forms/>
   <Translations/>
