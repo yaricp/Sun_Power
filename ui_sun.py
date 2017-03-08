@@ -519,7 +519,52 @@ class SunPos_Panel(bpy.types.Panel):
         cL.prop(sp, "PowerOneMeter", text="Power on one squer meter")
         cRi += 1
         cL.prop(sp, "EffectiveAngle", text="Effective angle for get power")
-
+        
+        box = self.layout.box()
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        col.label(text="Export Sun Power into Yml file")
+        split = col.split(percentage=.5)
+        cL = split.column()
+        cR = split.column()
+        cL.alignment = 'LEFT'
+        cR.alignment = 'RIGHT'
+        cLi = cRi = 1
+        cR.prop(sp, "ExportPowerToYML", 
+                text="Export File")
+        cL.prop(sp, "ExportEvery", text="Period, hour")
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        split = col.split(percentage=.5)
+        cL = split.column()
+        cR = split.column()
+        cL.alignment = 'LEFT'
+        cR.alignment = 'RIGHT'
+        cLi = cRi = 1
+        cR.prop(sp, "ExportMonthTo", text="Exp Month To")
+        cL.prop(sp, "ExportMonthFrom", text="Exp Month From")
+        cRi += 1
+        cLi += 1
+        cR.prop(sp, "ExportDayTo", text="Exp Day To")
+        cL.prop(sp, "ExportDayFrom", text="Exp Day From")
+        cRi += 1
+        cLi += 1
+        cR.prop(sp, "ExportYearTo", text="Exp Year To")
+        cL.prop(sp, "ExportYearFrom", text="Exp Year From")
+        cRi += 1
+        cLi += 1
+        #cL.prop(sp, "ExportStart", text="Start Exp", toggle=True)
+        #cR.prop(sp, "ExportStop", text="Stop Exp", toggle=True)
+        cL.operator('sunpos.start_export', 'Start Exp')
+        cR.operator('sunpos.stop_export', 'Stop Exp')
+#        if sp.ExportStart:
+#            sp.ExportStop = False
+#        if sp.ExportStop:
+#            sp.ExportStart = False
         
 ############################################################################
 
@@ -702,3 +747,4 @@ class SunPos_OT_MapChoice(bpy.types.Operator):
         Sun.MapName = wmp[i][1]
 
         return {'FINISHED'}
+        

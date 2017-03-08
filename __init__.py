@@ -80,6 +80,8 @@ def register():
     bpy.utils.register_class(SunPos_OT_MapChoice)
     bpy.utils.register_class(SunPos_Help)
     bpy.utils.register_class(SunPos_HdrHelp)
+    bpy.utils.register_class(SunPos_OT_start_export)
+    bpy.utils.register_class(SunPos_OT_stop_export)
 
 
 def unregister():
@@ -96,6 +98,8 @@ def unregister():
     bpy.utils.unregister_class(SunPos_OT_PreferencesDone)
     bpy.utils.unregister_class(SunPos_OT_Preferences)
     bpy.utils.unregister_class(SunPos_OT_Controller)
+    bpy.utils.unregister_class(SunPos_OT_start_export)
+    bpy.utils.unregister_class(SunPos_OT_stop_export)
     del bpy.types.Scene.SunPos_pref_property
     bpy.utils.unregister_class(SunPosPreferences)
     del bpy.types.Scene.SunPos_property

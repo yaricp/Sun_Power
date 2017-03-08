@@ -104,6 +104,17 @@ class SunClass:
     UseSunObject = False
     SunObject = "Sun"
     PowerShowObject = "Icosphere"
+    
+    ExportPowerToYML = ""
+    ExportEvery = 1.0
+    ExportDayFrom = 0
+    ExportDayTo = 0
+    ExportMonthFrom = 0
+    ExportMonthTo = 0
+    ExportYearFrom = 0
+    ExportYearTo = 0
+    ExportStart = False
+    ExportStop = True
 
     UseSkyTexture = False
     SkyTexture = "Sky Texture"
@@ -220,6 +231,12 @@ class SunClass:
             if '_text_' in label.name and label.type == 'FONT':
                 label.select = True
                 bpy.ops.object.delete()
+        bpy.data.objects['tot_power_label'].select = True
+        bpy.ops.object.delete()
+        bpy.data.objects['count_face_label'].select = True
+        bpy.ops.object.delete()
+        bpy.data.objects['face_power_label'].select = True
+        bpy.ops.object.delete()
         self.PowerObjectLabels_created = False
         
     def set_powers(self):
@@ -235,7 +252,9 @@ class SunClass:
         for poly in obj.data.polygons:
             text_name = obj.name+'_text_'+str(poly.index).replace('.', '_')
             sun_ang = sun_vec.angle(obj.matrix_world * poly.normal)
-            sun_power = self.PowerOneMeter*poly.area*cos(sun_ang)
+            sun_power = calc_power_sun(sun_vec)*poly.area*cos(sun_ang)
+            sun_power = sun_power - calc_reflect_power(sun_power, sun_ang)
+            #self.PowerOneMeter*poly.area*cos(sun_ang)
             if (sun_power > 0 and 
                 sun_vec.z > 0 and 
                 sun_ang < self.EffectiveAngle):
@@ -252,21 +271,21 @@ class SunClass:
             text_obj.data.body = '('+str(poly.index)+') '+str(value)
             set_color(text_obj, value)
             bpy.context.scene.update()
-            if sun_angles_dict and sun_powers:
-                max_power = max(sun_powers)
-                self.IndexFaceMaxPower = sun_angles_dict[max_power][0]
-                self.FaceMaxPower = max_power
-                tot_power_label = bpy.data.objects['tot_power_label']
-                tot_power_label.data.body = 'Total Power: '+str(round(self.TotalPower, 2))+' W'
-                face_power_label = bpy.data.objects['face_power_label']
-                face_power_label.data.body = 'Face power: '\
-                                            +'('+str(self.IndexFaceMaxPower)+') '\
-                                            +str(max_power)+' W'
-                set_color(face_power_label, max_power)
-                count_face_label = bpy.data.objects['count_face_label']
-                count_face_label.data.body = 'Count work faces: '+str(self.CountFaces)
-                set_color(count_face_label, max_power)
-                bpy.context.scene.update()
+        if sun_angles_dict and sun_powers:
+            max_power = max(sun_powers)
+            self.IndexFaceMaxPower = sun_angles_dict[max_power][0]
+            self.FaceMaxPower = max_power
+            tot_power_label = bpy.data.objects['tot_power_label']
+            tot_power_label.data.body = 'Total Power: '+str(round(self.TotalPower, 2))+' W'
+            face_power_label = bpy.data.objects['face_power_label']
+            face_power_label.data.body = 'Face power: '\
+                                        +'('+str(self.IndexFaceMaxPower)+') '\
+                                        +str(max_power)+' W'
+            set_color(face_power_label, max_power)
+            count_face_label = bpy.data.objects['count_face_label']
+            count_face_label.data.body = 'Count work faces: '+str(self.CountFaces)
+            set_color(count_face_label, max_power)
+            bpy.context.scene.update()
         
 
 Sun = SunClass()
@@ -469,6 +488,63 @@ class SunPosSettings(bpy.types.PropertyGroup):
         default="view3d",
         name="location",
         description="panel location")
+        
+    ExportPowerToYML = StringProperty(
+        default=".config/blender/Exports/SunPower.yml",
+        subtype="FILE_PATH", 
+        name="Export File", 
+        description="Export data to file")
+    
+    ExportEvery = FloatProperty(
+        attr="",
+        name="Time Spread",
+        description="Time period in which to make export data",
+        precision=4,
+        soft_min=1.00, soft_max=24.00, step=1.00, default=23.00)
+        
+    ExportMonthFrom = IntProperty(
+        attr="",
+        name="ExportMonthFrom",
+        description="mouth export data",
+        min=1, max=12, default=6)
+
+    ExportDayFrom = IntProperty(
+        attr="",
+        name="ExportDayFrom",
+        description="day export data from",
+        min=1, max=31, default=21)
+
+    ExportYearFrom = IntProperty(
+        attr="",
+        name="ExportYearFrom",
+        description="export from year",
+        min=1800, max=4000, default=2012)
+        
+    ExportMonthTo = IntProperty(
+        attr="",
+        name="ExportMonthTo",
+        description="mouth export to",
+        min=1, max=12, default=6)
+
+    ExportDayTo = IntProperty(
+        attr="",
+        name="ExportDayTo",
+        description="day export data to",
+        min=1, max=31, default=21)
+
+    ExportYearTo = IntProperty(
+        attr="",
+        name="ExportYearTo",
+        description="export to year",
+        min=1800, max=4000, default=2012)
+        
+    ExportStart = bpy.props.BoolProperty(
+        description="Start Export Power",
+        default=False)
+        
+    ExportStop = bpy.props.BoolProperty(
+        description="Stop Export Power",
+        default=True)
 
 
 ############################################################################

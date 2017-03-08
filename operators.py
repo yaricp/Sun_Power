@@ -123,7 +123,17 @@ class ControlClass:
             sp.ShowNorth != Sun.ShowNorth or
             sp.NorthOffset != Sun.NorthOffset or
             sp.PowerOneMeter != Sun.PowerOneMeter or
-            sp.EffectiveAngle != Sun.EffectiveAngle
+            sp.EffectiveAngle != Sun.EffectiveAngle or
+            sp.ExportPowerToYML != Sun.ExportPowerToYML or
+            sp.ExportEvery != Sun.ExportEvery or
+            sp.ExportDayFrom != Sun.ExportDayFrom or
+            sp.ExportDayTo != Sun.ExportDayTo or
+            sp.ExportMonthFrom != Sun.ExportMonthFrom or
+            sp.ExportMonthTo != Sun.ExportMonthTo or
+            sp.ExportYearFrom != Sun.ExportYearFrom or
+            sp.ExportYearTo != Sun.ExportYearTo or
+            sp.ExportStart != Sun.ExportStart or
+            sp.ExportStop != Sun.ExportStop
             ):
 
             Sun.Time = sp.Time
@@ -147,6 +157,16 @@ class ControlClass:
             Sun.NorthOffset = sp.NorthOffset
             Sun.PowerOneMeter = sp.PowerOneMeter
             Sun.EffectiveAngle = sp.EffectiveAngle
+            Sun.ExportPowerToYML = sp.ExportPowerToYML
+            Sun.ExportEvery = sp.ExportEvery
+            Sun.ExportDayFrom = sp.ExportDayFrom
+            Sun.ExportDayTo = sp.ExportDayTo
+            Sun.ExportMonthFrom = sp.ExportMonthFrom
+            Sun.ExportMonthTo = sp.ExportMonthTo
+            Sun.ExportYearFrom = sp.ExportYearFrom
+            Sun.ExportYearTo = sp.ExportYearTo
+            Sun.ExportStart = sp.ExportStart
+            Sun.ExportStop = sp.ExportStop
             
             return True
         return False
@@ -259,6 +279,52 @@ class SunPos_OT_Hdr(bpy.types.Operator):
 
     def invoke(self, context, event):
         context.window_manager.modal_handler_add(self)
+        Display.refresh()
+        return {'RUNNING_MODAL'}
+        
+        
+class SunPos_OT_start_export(bpy.types.Operator):
+    bl_idname = "sunpos.start_export"
+    bl_label = "Start Export Power"
+
+    def modal(self, context, event):
+        if Hdr.view3d_area != context.area or not Sun.SP.ShowHdr:
+            Hdr.deactivate()
+            Display.refresh()
+            return {'FINISHED'}
+        elif not Display.PANEL:
+            Stop_all_handlers()
+            return {'FINISHED'}
+        return  Hdr.event_controller(context, event)
+        
+    def execute(self, context):
+        print('Start Export')
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.modal_handler_add(self)
+        print('Start Export')
+        Display.refresh()
+        return {'RUNNING_MODAL'}
+        
+        
+class SunPos_OT_stop_export(bpy.types.Operator):
+    bl_idname = "sunpos.stop_export"
+    bl_label = "Stop Export Power"
+
+    def modal(self, context, event):
+        if Hdr.view3d_area != context.area or not Sun.SP.ShowHdr:
+            Hdr.deactivate()
+            Display.refresh()
+            return {'FINISHED'}
+        elif not Display.PANEL:
+            Stop_all_handlers()
+            return {'FINISHED'}
+        return  Hdr.event_controller(context, event)
+
+    def invoke(self, context, event):
+        context.window_manager.modal_handler_add(self)
+        print('Stop Export')
         Display.refresh()
         return {'RUNNING_MODAL'}
 
