@@ -493,7 +493,9 @@ class SunPos_Panel(bpy.types.Panel):
                 colM.label(text=tss, icon='SOLO_ON')
             else:
                 colL.label(text=tss, icon='SOLO_ON')
-
+        
+        ### SUN POWER ###
+        
         box = self.layout.box()
         toprow = box.row()
         row = toprow.row(align=False)
@@ -516,7 +518,7 @@ class SunPos_Panel(bpy.types.Panel):
                 Sun.PowerObject_verified = False
         else:
             Sun.PowerObject_verified = False
-        cL.prop(sp, "PowerOneMeter", text="Power on one squer meter")
+        cL.prop(sp, "Efficiency", text="Efficiency %")
         cRi += 1
         cL.prop(sp, "EffectiveAngle", text="Effective angle for get power")
         

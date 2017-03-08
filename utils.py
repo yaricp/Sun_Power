@@ -50,7 +50,6 @@ def calc_power_sun(sun_vec):
     sun_ang = sun_vec.angle(Vector((0, 0, 1)))
     q = sun_ang
     AM = 1/(cos(q)+0.50572*(96.07995-q)**-1.6364)
-    #print('AM = '+str(AM))
     power = round(SPACE_POWER_ON_METER*(0.7**(AM**0.678)), 2) 
     return power
     
@@ -70,11 +69,8 @@ def calc_reflect_power(power, sun_ang, cover_material='polycarbonat'):
                     }
     kr = 1
     for k, v in table_kr_mat[cover_material].items():
-        print(k)
         d_sun_ang = round(degrees(sun_ang), 2)
-        print(d_sun_ang)
         if degrees(sun_ang) <= k:
-            print(v)
             kr = v
             continue
     refl_power = power*kr

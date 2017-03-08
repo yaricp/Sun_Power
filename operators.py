@@ -122,7 +122,7 @@ class ControlClass:
             sp.ShowRefraction != Sun.ShowRefraction or
             sp.ShowNorth != Sun.ShowNorth or
             sp.NorthOffset != Sun.NorthOffset or
-            sp.PowerOneMeter != Sun.PowerOneMeter or
+            sp.Efficiency != Sun.Efficiency or
             sp.EffectiveAngle != Sun.EffectiveAngle or
             sp.ExportPowerToYML != Sun.ExportPowerToYML or
             sp.ExportEvery != Sun.ExportEvery or
@@ -155,7 +155,7 @@ class ControlClass:
             Sun.ShowRefraction = sp.ShowRefraction
             Sun.ShowNorth = sp.ShowNorth
             Sun.NorthOffset = sp.NorthOffset
-            Sun.PowerOneMeter = sp.PowerOneMeter
+            Sun.Efficiency = sp.Efficiency
             Sun.EffectiveAngle = sp.EffectiveAngle
             Sun.ExportPowerToYML = sp.ExportPowerToYML
             Sun.ExportEvery = sp.ExportEvery

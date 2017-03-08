@@ -98,7 +98,7 @@ class SunClass:
     IndexFaceMaxPower = 0
     FaceMaxPower = 0.0
     
-    PowerOneMeter = 650.0
+    Efficiency = 90
     EffectiveAngle = 65.0
 
     UseSunObject = False
@@ -254,6 +254,7 @@ class SunClass:
             sun_ang = sun_vec.angle(obj.matrix_world * poly.normal)
             sun_power = calc_power_sun(sun_vec)*poly.area*cos(sun_ang)
             sun_power = sun_power - calc_reflect_power(sun_power, sun_ang)
+            sun_power = sun_power * (self.Efficiency/100)
             #self.PowerOneMeter*poly.area*cos(sun_ang)
             if (sun_power > 0 and 
                 sun_vec.z > 0 and 
@@ -404,15 +405,15 @@ class SunPosSettings(bpy.types.PropertyGroup):
         step=10.00,
         default=radians(Sun.EffectiveAngle))
         
-    PowerOneMeter = FloatProperty(
+    Efficiency = FloatProperty(
         attr="",
-        name="PowerOneMeter",
-        description="Power on one squer meter for this region",
+        name="Efficiency",
+        description="Efficiency %",
         unit="LENGTH",
-        soft_min=1,
-        soft_max=3000.00,
-        step=10.00,
-        default=Sun.PowerOneMeter)
+        soft_min=0,
+        soft_max=100.00,
+        step=1.00,
+        default=Sun.Efficiency)
 
     SunObject = StringProperty(
         default="Sun",
