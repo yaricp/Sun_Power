@@ -251,6 +251,8 @@ def calc_table(Sun):
                 print('temp_out = '+str(temp_out))
                 print('temp_in start of day = '+str(temp_in_start))
                 #power_out_heat = calc_sun_power_on_day(Sun, date)
+                day_power_list = []
+                tot_day_power = 0
                 for hour in range(0, 24):
                     #print('temp_in start of hour = '+str(temp_in_start))
                     power_out_heat = calc_sun_power_on_hour(Sun, date, hour)
@@ -260,6 +262,12 @@ def calc_table(Sun):
                                             power_in_heat)
                     #print('temp_in end of hour = '+str(temp_in_end))
                     temp_in_start = temp_in_end
+                    tot_day_power += power_out_heat
+                    day_power_list.append(power_out_heat)
+                day_power = tot_day_power/24
+                max_day_power = max(day_power_list)
+                print('day_power of day = '+str(day_power))
+                print('max_day_power of day = '+str(max_day_power))
                 print('temp_in end of day = '+str(temp_in_end))
                 #temp_in_start = temp_in_end
                 
