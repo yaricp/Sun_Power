@@ -66,6 +66,7 @@ def format_lat_long(latLong, isLatitude):
 
 
 def Move_sun():
+    print(Sun)
     if Sun.PP.UsageMode == "HDR":
         Sun.Theta = math.pi / 2 - degToRad(Sun.Elevation)
         Sun.Phi = -Sun.Azimuth

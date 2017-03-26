@@ -133,7 +133,8 @@ class ControlClass:
             sp.ExportYearFrom != Sun.ExportYearFrom or
             sp.ExportYearTo != Sun.ExportYearTo or
             sp.ExportStart != Sun.ExportStart or
-            sp.ExportStop != Sun.ExportStop
+            sp.ExportStop != Sun.ExportStop or
+            sp.SizeSunPowerObject != Sun.SizeSunPowerObject
             ):
 
             Sun.Time = sp.Time
@@ -167,6 +168,7 @@ class ControlClass:
             Sun.ExportYearTo = sp.ExportYearTo
             Sun.ExportStart = sp.ExportStart
             Sun.ExportStop = sp.ExportStop
+            Sun.SizeSunPowerObject = sp.SizeSunPowerObject
             
             return True
         return False
@@ -281,6 +283,56 @@ class SunPos_OT_Hdr(bpy.types.Operator):
         context.window_manager.modal_handler_add(self)
         Display.refresh()
         return {'RUNNING_MODAL'}
+        
+        
+class SunPos_OT_start_calc_table(bpy.types.Operator):
+    bl_idname = "sunpos.start_calc_table"
+    bl_label = "Start Calc Saved power"
+    
+    def execute(self, context):
+        calc_table(Sun)
+        return {'FINISHED'}
+        
+        
+class SunPos_OT_create_new_obj(bpy.types.Operator):
+    bl_idname = "sunpos.create_new_obj"
+    bl_label = "Create new sun Power Object"
+    
+    def execute(self, context):
+        print('Create new object')
+        Sun.delete_power_labels()
+        obj = bpy.data.objects.get(Sun.PowerShowObject)
+        Sun.PowerObject_verified = False
+        Sun.PowerShowObject = None
+        obj.select = True
+        bpy.ops.object.delete()
+        subdivisions = ICO_SUBDIV
+        size = Sun.SizeSunPowerObject
+        bpy.ops.mesh.primitive_ico_sphere_add(location=(0, 0, 0), 
+                                                subdivisions = subdivisions, 
+                                                size = size)
+        obj = bpy.context.active_object
+        obj.name = 'Icosphere'
+        bpy.ops.object.mode_set(mode='EDIT')
+        import bmesh
+        bm = bmesh.from_edit_mesh(obj.data)
+        del_vertices_select = []
+        floor_verts = []
+        for v in bm.verts:
+            if v.co.z<0:
+                del_vertices_select.append(v)
+            elif v.co.z==0:
+                v.select = True
+                floor_verts.append(v)
+        print(floor_verts)
+        bmesh.ops.delete(bm, geom=del_vertices_select, context=1)
+        bm.faces.new(floor_verts)
+        bmesh.update_edit_mesh(obj.data, True)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        Sun.PowerObject_verified = True
+        Sun.PowerShowObject = 'Icosphere'
+        
+        return {'FINISHED'}
         
         
 class SunPos_OT_start_export(bpy.types.Operator):

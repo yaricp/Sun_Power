@@ -82,6 +82,8 @@ def register():
     bpy.utils.register_class(SunPos_HdrHelp)
     bpy.utils.register_class(SunPos_OT_start_export)
     bpy.utils.register_class(SunPos_OT_stop_export)
+    bpy.utils.register_class(SunPos_OT_start_calc_table)
+    bpy.utils.register_class(SunPos_OT_create_new_obj)
 
 
 def unregister():
@@ -100,6 +102,8 @@ def unregister():
     bpy.utils.unregister_class(SunPos_OT_Controller)
     bpy.utils.unregister_class(SunPos_OT_start_export)
     bpy.utils.unregister_class(SunPos_OT_stop_export)
+    bpy.utils.unregister_class(SunPos_OT_start_calc_table)
+    bpy.utils.unregister_class(SunPos_OT_create_new_obj)
     del bpy.types.Scene.SunPos_pref_property
     bpy.utils.unregister_class(SunPosPreferences)
     del bpy.types.Scene.SunPos_property

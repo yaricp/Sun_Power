@@ -4,7 +4,7 @@ import math
 from math import degrees, cos, radians
 from mathutils import Vector 
 
-from . utils import *
+from . utils import * #clamp, calc_sun_power_on_faces, calc_table
 
 
 class DisplayAction:
@@ -103,7 +103,8 @@ class SunClass:
 
     UseSunObject = False
     SunObject = "Sun"
-    PowerShowObject = "Icosphere"
+    PowerShowObject = "Icosphere" 
+    SizeSunPowerObject = 4
     
     ExportPowerToYML = ""
     ExportEvery = 1.0
@@ -163,22 +164,28 @@ class SunClass:
                 list.append(v)
         return max(list)-1
         
-    def create_total_labels(self, obj):
+    def create_total_labels(self):
+        obj = bpy.context.scene.objects.get(self.PowerShowObject)
         max_co = self.get_max_vert(obj)
         bpy.ops.object.text_add(location=(max_co,max_co,max_co))
         tot_power_label = bpy.context.object
         tot_power_label.data.body = "Total Power: 0"
-        tot_power_label.name = 'tot_power_label'
+        tot_power_label.name = 'sun_tot_power_label'
         tot_power_label.scale = (0.3,0.3,0.3)
+        bpy.ops.object.text_add(location=(max_co,max_co,max_co+1.5))
+        temp_in_label = bpy.context.object
+        temp_in_label.data.body = "Temp IN: 0"
+        temp_in_label.name = 'sun_temp_in_label'
+        temp_in_label.scale = (0.3,0.3,0.3)
         bpy.ops.object.text_add(location=(max_co,max_co,max_co+0.5))
         face_power_label = bpy.context.object
         face_power_label.data.body = "Face power: 0"
-        face_power_label.name = 'face_power_label'
+        face_power_label.name = 'sun_face_power_label'
         face_power_label.scale = (0.3,0.3,0.3)
         bpy.ops.object.text_add(location=(max_co,max_co,max_co+1))
         count_face_label = bpy.context.object
         count_face_label.data.body = "Count work faces: 0"
-        count_face_label.name = 'count_face_label'
+        count_face_label.name = 'sun_count_face_label'
         count_face_label.scale = (0.3,0.3,0.3)
         tot_power_label.convert_space(from_space='WORLD', to_space='LOCAL')
         tot_power_label.rotation_mode = 'XYZ'
@@ -189,16 +196,19 @@ class SunClass:
         count_face_label.convert_space(from_space='WORLD', to_space='LOCAL')
         count_face_label.rotation_mode = 'XYZ'
         count_face_label.rotation_euler = (radians(90),0,0)
+        temp_in_label.convert_space(from_space='WORLD', to_space='LOCAL')
+        temp_in_label.rotation_mode = 'XYZ'
+        temp_in_label.rotation_euler = (radians(90),0,0)
         bpy.context.scene.update()
         
     def create_power_labels(self):
-        obj = bpy.context.scene.objects.get(Sun.PowerShowObject)
-        self.create_total_labels(obj)
+        obj = bpy.context.scene.objects.get(self.PowerShowObject)
+        self.create_total_labels()
         mat_world = obj.matrix_world
         cam = bpy.context.scene.objects['Camera']
         cam_center = cam.location
         for poly in obj.data.polygons:
-            text_name = obj.name+'_text_'+str(poly.index).replace('.', '_')
+            text_name = 'sun_'+obj.name+'_text_'+str(poly.index).replace('.', '_')
             bpy.ops.object.text_add(location=mat_world * Vector(poly.center))
             myFontOb = bpy.context.object
             myFontOb.data.body = "0"
@@ -228,65 +238,38 @@ class SunClass:
     
     def delete_power_labels(self):
         for label in bpy.data.objects:
-            if '_text_' in label.name and label.type == 'FONT':
+            if 'sun_' in label.name and label.type == 'FONT':
                 label.select = True
                 bpy.ops.object.delete()
-        bpy.data.objects['tot_power_label'].select = True
-        bpy.ops.object.delete()
-        bpy.data.objects['count_face_label'].select = True
-        bpy.ops.object.delete()
-        bpy.data.objects['face_power_label'].select = True
-        bpy.ops.object.delete()
         self.PowerObjectLabels_created = False
         
     def set_powers(self):
-        SunObj = bpy.context.scene.objects.get(Sun.SunObject)
+        SunObj = bpy.context.scene.objects.get(self.SunObject)
         sun_vec = SunObj.location
-        sun_mx = SunObj.matrix_world
-        obj = bpy.context.scene.objects.get(Sun.PowerShowObject)
-        sun_powers = []
-        sun_angles_dict = {}
-        self.TotalPower = 0.0
-        sun_power = 0.0
-        self.CountFaces = 0
-        for poly in obj.data.polygons:
-            text_name = obj.name+'_text_'+str(poly.index).replace('.', '_')
-            sun_ang = sun_vec.angle(obj.matrix_world * poly.normal)
-            sun_power = calc_power_sun(sun_vec)*poly.area*cos(sun_ang)
-            sun_power = sun_power - calc_reflect_power(sun_power, sun_ang)
-            sun_power = sun_power * (self.Efficiency/100)
-            #self.PowerOneMeter*poly.area*cos(sun_ang)
-            if (sun_power > 0 and 
-                sun_vec.z > 0 and 
-                sun_ang < self.EffectiveAngle):
-                self.CountFaces += 1
-                self.TotalPower += sun_power
-                sun_powers.append(round(sun_power, 2))
-                sun_angles_dict.update({round(sun_power, 2):(poly.index,degrees(sun_ang),
-                                                round(sun_power, 2))})
-                print((poly.index,degrees(sun_ang),sun_power))
-                value = str(round(sun_power,2))
-            else:
-                value = 0
-            text_obj = bpy.data.objects[text_name]
-            text_obj.data.body = '('+str(poly.index)+') '+str(value)
-            set_color(text_obj, value)
-            bpy.context.scene.update()
-        if sun_angles_dict and sun_powers:
-            max_power = max(sun_powers)
-            self.IndexFaceMaxPower = sun_angles_dict[max_power][0]
-            self.FaceMaxPower = max_power
-            tot_power_label = bpy.data.objects['tot_power_label']
-            tot_power_label.data.body = 'Total Power: '+str(round(self.TotalPower, 2))+' W'
-            face_power_label = bpy.data.objects['face_power_label']
-            face_power_label.data.body = 'Face power: '\
-                                        +'('+str(self.IndexFaceMaxPower)+') '\
-                                        +str(max_power)+' W'
-            set_color(face_power_label, max_power)
-            count_face_label = bpy.data.objects['count_face_label']
-            count_face_label.data.body = 'Count work faces: '+str(self.CountFaces)
-            set_color(count_face_label, max_power)
-            bpy.context.scene.update()
+        (max_power,index_max_power_face,
+        count_faces, total_power) = calc_sun_power_on_faces(sun_vec, 
+                                                            self.PowerShowObject, 
+                                                            self.Efficiency, 
+                                                            self.EffectiveAngle)
+        self.IndexFaceMaxPower = index_max_power_face 
+        self.FaceMaxPower = max_power
+        self.CountFaces = count_faces
+        self.TotalPower = total_power
+        tot_power_label = bpy.data.objects['sun_tot_power_label']
+        tot_power_label.data.body = 'Total Power: '+str(round(self.TotalPower, 2))+' W'
+        set_color(tot_power_label, max_power)
+        face_power_label = bpy.data.objects['sun_face_power_label']
+        face_power_label.data.body = 'Face power: '\
+                                    +'('+str(self.IndexFaceMaxPower)+') '\
+                                    +str(max_power)+' W'
+        set_color(face_power_label, max_power)
+        count_face_label = bpy.data.objects['sun_count_face_label']
+        count_face_label.data.body = 'Count work faces: '+str(self.CountFaces)
+        set_color(count_face_label, max_power)
+        count_face_label = bpy.data.objects['sun_temp_in_label']
+        count_face_label.data.body = 'Temp IN: '+str(self.CountFaces)
+        set_color(count_face_label, max_power)
+        bpy.context.scene.update()
         
 
 Sun = SunClass()
@@ -489,6 +472,16 @@ class SunPosSettings(bpy.types.PropertyGroup):
         default="view3d",
         name="location",
         description="panel location")
+        
+    SizeSunPowerObject = FloatProperty(
+        attr="",
+        name="SizeSunPowerObject",
+        description="Size of house",
+        unit="LENGTH",
+        soft_min=0,
+        soft_max=100.00,
+        step=1.00,
+        default=Sun.SizeSunPowerObject)
         
     ExportPowerToYML = StringProperty(
         default=".config/blender/Exports/SunPower.yml",

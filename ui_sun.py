@@ -521,6 +521,10 @@ class SunPos_Panel(bpy.types.Panel):
         cL.prop(sp, "Efficiency", text="Efficiency %")
         cRi += 1
         cL.prop(sp, "EffectiveAngle", text="Effective angle for get power")
+        cRi += 1
+        cL.prop(sp, "SizeSunPowerObject", text="Size of house")
+        cLi += 1
+        cL.operator('sunpos.create_new_obj', 'Create')
         
         box = self.layout.box()
         toprow = box.row()
@@ -559,14 +563,14 @@ class SunPos_Panel(bpy.types.Panel):
         cL.prop(sp, "ExportYearFrom", text="Exp Year From")
         cRi += 1
         cLi += 1
-        #cL.prop(sp, "ExportStart", text="Start Exp", toggle=True)
-        #cR.prop(sp, "ExportStop", text="Stop Exp", toggle=True)
         cL.operator('sunpos.start_export', 'Start Exp')
         cR.operator('sunpos.stop_export', 'Stop Exp')
-#        if sp.ExportStart:
-#            sp.ExportStop = False
-#        if sp.ExportStop:
-#            sp.ExportStart = False
+        # Calc table
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        col.operator('sunpos.start_calc_table', 'Start Calc')
         
 ############################################################################
 
