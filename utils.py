@@ -89,7 +89,7 @@ def calc_area_of_lost_heat(radius):
     return S
     
 
-def mass_heat_kepper(radius): 
+def get_mass_heat_kepper(radius): 
     
     radius_out = radius - AIR_GAP
     radius_in  = radius_out - THIK_WALL
@@ -108,14 +108,20 @@ def calc_power_lost_heat(S, dT, Kt):
     return N_lost
     
     
-def calc_temp_in(S_house, S_floor, radius, temp_in_start, 
-                temp_out, time_tick, power_out_heat, power_in_heat):
-
+def get_power_lost(S_house, S_floor, radius, temp_in_start, 
+                temp_out):
+    
     dT_house = temp_out - temp_in_start
     dT_floor = T_UNDER_FLOOR - temp_in_start
     N_lost_house = calc_power_lost_heat(S_house, dT_house, Kt)
     N_lost_floor = calc_power_lost_heat(S_floor, dT_floor, Kt)
     N_lost = N_lost_house + N_lost_floor
+    
+    return N_lost
+    
+    
+def calc_temp_in(N_lost, time_tick, power_out_heat, power_in_heat, 
+                radius, temp_in_start, Mass=None):
     N_res = N_lost + power_out_heat + power_in_heat
     #################
     #Q=m*c*(Т2-Т1)  #
@@ -123,7 +129,8 @@ def calc_temp_in(S_house, S_floor, radius, temp_in_start,
     #(T2-T1)=Q/(m*c)#
     #T2 = T1+Q/(m*c)#
     #################
-    Mass = mass_heat_kepper(radius)
+    if not Mass:
+        Mass = get_mass_heat_kepper(radius)
 
     temp_in_end = temp_in_start + N_res*time_tick/(Mass*C_MAT)
     return temp_in_end
@@ -231,6 +238,7 @@ def calc_table(Sun):
     time_tick = 60*60    #1 hours
     temp_in_start = FIRST_TEMP_IN
     power_in_heat = POWER_INSIDE
+    Mass = MASS_INSIDE
     path = os.path.dirname(os.path.realpath(__file__))
     filename = os.path.join(path,'table_temp_2016.csv')
     with open(filename,'r') as file:
@@ -247,19 +255,27 @@ def calc_table(Sun):
                 date = datetime.strptime(date_str, "%m/%d/%y")
                 radius = get_obj_radius(Sun)
                 floor_area = pi*radius**2
+                house_cover_area = total_area - floor_area
+                
                 print('date = '+date_str)
                 print('temp_out = '+str(temp_out))
                 print('temp_in start of day = '+str(temp_in_start))
                 #power_out_heat = calc_sun_power_on_day(Sun, date)
                 day_power_list = []
                 tot_day_power = 0
+                power_lost_dict = []
                 for hour in range(0, 24):
+                    N_lost = get_power_lost(house_cover_area, floor_area, 
+                                            radius, temp_in_start, 
+                                            temp_out)
+                    power_lost_dict.append(N_lost)
                     #print('temp_in start of hour = '+str(temp_in_start))
                     power_out_heat = calc_sun_power_on_hour(Sun, date, hour)
                     #print('power_out_heat of hour = '+str(power_out_heat))
-                    temp_in_end = calc_temp_in(total_area, floor_area, radius, temp_in_start, 
-                                            temp_out, time_tick, power_out_heat, 
-                                            power_in_heat)
+                    temp_in_end = calc_temp_in(N_lost, time_tick, 
+                                                power_out_heat, 
+                                                power_in_heat, radius, 
+                                                temp_in_start, Mass)
                     #print('temp_in end of hour = '+str(temp_in_end))
                     temp_in_start = temp_in_end
                     tot_day_power += power_out_heat
@@ -268,6 +284,8 @@ def calc_table(Sun):
                 max_day_power = max(day_power_list)
                 print('day_power of day = '+str(day_power))
                 print('max_day_power of day = '+str(max_day_power))
+                print('lost power of day = '+str(sum(power_lost_dict)/24))
+                print('max lost power of day = '+str(max(power_lost_dict)))
                 print('temp_in end of day = '+str(temp_in_end))
                 #temp_in_start = temp_in_end
                 
