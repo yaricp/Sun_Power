@@ -3,6 +3,9 @@ from datetime import datetime
 import bpy, colorsys
 from math import pi, sin, cos, degrees
 from mathutils import Vector    #,Matrix 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 
 from . settings import *
@@ -102,21 +105,29 @@ def get_mass_heat_kepper(radius):
     return Mass
     
     
-def calc_power_lost_heat(S, dT, Kt):
-    
-    N_lost = S*dT*Kt/THIK_WALL
+def calc_power_lost_heat_el(S, dT, Kt):
+    #http://infobos.ru/str/916.html
+    #a_in = 8.7
+    R_in = 1/8.7
+    #a_out = 23
+    R_out = 1/23
+    R_mat = THIK_COVER/Kt
+    N_lost = (dT/(R_in+R_out+R_mat))*S
     return N_lost
     
     
-def get_power_lost(S_house, S_floor, radius, temp_in_start, 
-                temp_out):
+def get_power_lost(S_house, S_floor, radius, temp_in_start, temp_out):
     
     dT_house = temp_out - temp_in_start
     dT_floor = T_UNDER_FLOOR - temp_in_start
-    N_lost_house = calc_power_lost_heat(S_house, dT_house, Kt)
-    N_lost_floor = calc_power_lost_heat(S_floor, dT_floor, Kt)
+    print(dT_house)
+    print(dT_floor)
+    N_lost_house = calc_power_lost_heat_el(S_house, dT_house, Kt)
+    N_lost_floor = calc_power_lost_heat_el(S_floor, dT_floor, Kt)
     N_lost = N_lost_house + N_lost_floor
-    
+    print(N_lost_house)
+    print(N_lost_floor)
+    print(N_lost)
     return N_lost
     
     
@@ -235,60 +246,105 @@ def calc_sun_power_on_day(Sun, date):
     
     
 def calc_table(Sun):
+    x_list = []
+    temp_out_list = []
+    temp_in_start_list = []
+    sun_day_power_list = []
+    max_day_power_list = []
+    lost_power_day_list = []
+    #max_lost_power_day_list = []
     time_tick = 60*60    #1 hours
     temp_in_start = FIRST_TEMP_IN
     power_in_heat = POWER_INSIDE
     Mass = MASS_INSIDE
     path = os.path.dirname(os.path.realpath(__file__))
     filename = os.path.join(path,'table_temp_2016.csv')
-    with open(filename,'r') as file:
-        for line in file.readlines():
-            cols = line.split(',')
-            if len(cols)>4:
-                if '−' in cols[3]:
-                    znak = -1
-                else:
-                    znak = 1
-                temp_out = float(cols[3].replace('°C', '').replace('−', ''))*znak
-                date_str = cols[1]
-                floor_area, total_area = calc_obj_areas(Sun)
-                date = datetime.strptime(date_str, "%m/%d/%y")
-                radius = get_obj_radius(Sun)
-                floor_area = pi*radius**2
-                house_cover_area = total_area - floor_area
+    count_x =0
+    with open(filename,'r') as file_in:
+        for line in file_in.readlines():
+            count_x+=1
+            with open('out_data.csv', 'a') as file_out:
+                cols = line.split(',')
+                if len(cols)>4:
+                    if '−' in cols[3]:
+                        znak = -1
+                    else:
+                        znak = 1
+                    temp_out = float(cols[3].replace('°C', '').replace('−', ''))*znak
+                    date_str = cols[1]
+                    floor_area, total_area = calc_obj_areas(Sun)
+                    date = datetime.strptime(date_str, "%m/%d/%y")
+                    radius = get_obj_radius(Sun)
+                    floor_area = pi*radius**2
+                    house_cover_area = total_area - floor_area
+                    print('date = '+date_str)
+                    x_list.append(count_x)
+                    file_out.write(date_str+';')
+                    print('temp_out = '+str(temp_out))
+                    temp_out_list.append(temp_out)
+                    file_out.write(str(temp_out)+';')
+                    print('temp_in start of day = '+str(temp_in_start))
+                    file_out.write(str(temp_in_start)+';')
+#                    N_lost = get_power_lost(house_cover_area, floor_area, 
+#                                                radius, temp_in_start, 
+#                                                temp_out)
+                    
+                    tot_day_power = 0
+                    #power_lost_dict = []
+                    sun_day_power_hours_list = []
+                    lost_day_power_hours_list = []
+                    for hour in range(0, 24):
+                        power_out_heat = calc_sun_power_on_hour(Sun, date, hour)
+                        #power_out_heat = 0
+                        N_lost = get_power_lost(house_cover_area, floor_area, 
+                                                radius, temp_in_start, 
+                                                temp_out) 
+                        lost_day_power_hours_list.append(N_lost)
+                        temp_in_end = calc_temp_in(N_lost, time_tick, 
+                                                    power_out_heat, 
+                                                    power_in_heat, radius, 
+                                                    temp_in_start, Mass)
+                        temp_in_start = temp_in_end
+                        sun_day_power_hours_list.append(power_out_heat)
+                        
+                    lost_day_power = sum(lost_day_power_hours_list)/24
+                    lost_power_day_list.append(round(lost_day_power, 2)/1000)
+                    temp_in_start_list.append(temp_in_start)
+                    sun_day_power = sum(sun_day_power_hours_list)/24
+                    sun_day_power_list.append(round(sun_day_power, 2)/1000)
+                    max_day_power = max(sun_day_power_hours_list)
+                    max_day_power_list.append(round(max_day_power, 2)/1000)
+                    #lost_power_day = sum(power_lost_dict)/24
+                    
+                    #max_lost_power_day = max(power_lost_dict)
+                    #max_lost_power_day_list.append(max_lost_power_day)
+                    print('day_power of day = '+str(round(sun_day_power, 2)/1000))
+                    file_out.write(str(round(sun_day_power, 2)/1000)+';')
+                    print('max_day_power of day = '+str(round(max_day_power, 2)/1000))
+                    file_out.write(str(round(max_day_power, 2)/1000)+';')
+                    print('lost power of day = '+str(round(N_lost, 2)/1000))
+                    file_out.write(str(round(N_lost, 2)/1000)+';')
+                    #print('max lost power of day = '+str(max_lost_power_day))
+                    #file_out.write(str(max_lost_power_day)+';')
+                    print('temp_in end of day = '+str(temp_in_end))
+                    file_out.write(str(temp_in_end)+';')
+                file_out.write('\n')
                 
-                print('date = '+date_str)
-                print('temp_out = '+str(temp_out))
-                print('temp_in start of day = '+str(temp_in_start))
-                #power_out_heat = calc_sun_power_on_day(Sun, date)
-                day_power_list = []
-                tot_day_power = 0
-                power_lost_dict = []
-                for hour in range(0, 24):
-                    N_lost = get_power_lost(house_cover_area, floor_area, 
-                                            radius, temp_in_start, 
-                                            temp_out)
-                    power_lost_dict.append(N_lost)
-                    #print('temp_in start of hour = '+str(temp_in_start))
-                    power_out_heat = calc_sun_power_on_hour(Sun, date, hour)
-                    #print('power_out_heat of hour = '+str(power_out_heat))
-                    temp_in_end = calc_temp_in(N_lost, time_tick, 
-                                                power_out_heat, 
-                                                power_in_heat, radius, 
-                                                temp_in_start, Mass)
-                    #print('temp_in end of hour = '+str(temp_in_end))
-                    temp_in_start = temp_in_end
-                    tot_day_power += power_out_heat
-                    day_power_list.append(power_out_heat)
-                day_power = tot_day_power/24
-                max_day_power = max(day_power_list)
-                print('day_power of day = '+str(day_power))
-                print('max_day_power of day = '+str(max_day_power))
-                print('lost power of day = '+str(sum(power_lost_dict)/24))
-                print('max lost power of day = '+str(max(power_lost_dict)))
-                print('temp_in end of day = '+str(temp_in_end))
-                #temp_in_start = temp_in_end
-                
+    data = [x_list, temp_out_list, temp_in_start_list, sun_day_power_list, lost_power_day_list]
+    create_graph(data)
+    
+    
+def create_graph(data):
+    
+    fig1 = plt.figure()
+    x_series = data.pop(0)
+    #print(x_series)
+    for y_series in data:
+        #print(y_series)
+        plt.plot(x_series, y_series)
+    plt.xlabel('date')
+    plt.title('Sun Power')
+    plt.show()
                 
                 
                 

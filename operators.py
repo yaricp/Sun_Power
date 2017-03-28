@@ -304,8 +304,10 @@ class SunPos_OT_create_new_obj(bpy.types.Operator):
         obj = bpy.data.objects.get(Sun.PowerShowObject)
         Sun.PowerObject_verified = False
         Sun.PowerShowObject = None
-        obj.select = True
-        bpy.ops.object.delete()
+        if obj:
+            obj.select = True
+            bpy.ops.object.delete()
+        #Create new sun object
         subdivisions = ICO_SUBDIV
         size = Sun.SizeSunPowerObject
         bpy.ops.mesh.primitive_ico_sphere_add(location=(0, 0, 0), 
