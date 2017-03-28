@@ -120,14 +120,9 @@ def get_power_lost(S_house, S_floor, radius, temp_in_start, temp_out):
     
     dT_house = temp_out - temp_in_start
     dT_floor = T_UNDER_FLOOR - temp_in_start
-    print(dT_house)
-    print(dT_floor)
     N_lost_house = calc_power_lost_heat_el(S_house, dT_house, Kt)
     N_lost_floor = calc_power_lost_heat_el(S_floor, dT_floor, Kt)
     N_lost = N_lost_house + N_lost_floor
-    print(N_lost_house)
-    print(N_lost_floor)
-    print(N_lost)
     return N_lost
     
     
@@ -158,10 +153,10 @@ def calc_obj_areas(Sun):
     area_list = []
     for poly in obj.data.polygons:
         area_list.append(poly.area)
-    floor_area = max(area_list)
-    area_list.remove(floor_area)
+    #floor_area = max(area_list)
+    #area_list.remove(floor_area)
     total_area = sum(area_list)
-    return floor_area, total_area
+    return total_area
     
 
 def calc_sun_power_on_faces(sun_vec, obj, efficiency, effective_angle):
@@ -259,7 +254,7 @@ def calc_table(Sun):
     Mass = MASS_INSIDE
     path = os.path.dirname(os.path.realpath(__file__))
     filename = os.path.join(path,'table_temp_2016.csv')
-    count_x =0
+    count_x = 0
     with open(filename,'r') as file_in:
         for line in file_in.readlines():
             count_x+=1
@@ -272,11 +267,10 @@ def calc_table(Sun):
                         znak = 1
                     temp_out = float(cols[3].replace('°C', '').replace('−', ''))*znak
                     date_str = cols[1]
-                    floor_area, total_area = calc_obj_areas(Sun)
+                    walls_total_area = calc_obj_areas(Sun)
                     date = datetime.strptime(date_str, "%m/%d/%y")
                     radius = get_obj_radius(Sun)
                     floor_area = pi*radius**2
-                    house_cover_area = total_area - floor_area
                     print('date = '+date_str)
                     x_list.append(count_x)
                     file_out.write(date_str+';')
@@ -285,10 +279,6 @@ def calc_table(Sun):
                     file_out.write(str(temp_out)+';')
                     print('temp_in start of day = '+str(temp_in_start))
                     file_out.write(str(temp_in_start)+';')
-#                    N_lost = get_power_lost(house_cover_area, floor_area, 
-#                                                radius, temp_in_start, 
-#                                                temp_out)
-                    
                     tot_day_power = 0
                     #power_lost_dict = []
                     sun_day_power_hours_list = []
@@ -296,7 +286,7 @@ def calc_table(Sun):
                     for hour in range(0, 24):
                         power_out_heat = calc_sun_power_on_hour(Sun, date, hour)
                         #power_out_heat = 0
-                        N_lost = get_power_lost(house_cover_area, floor_area, 
+                        N_lost = get_power_lost(walls_total_area, floor_area, 
                                                 radius, temp_in_start, 
                                                 temp_out) 
                         lost_day_power_hours_list.append(N_lost)
@@ -330,21 +320,24 @@ def calc_table(Sun):
                     file_out.write(str(temp_in_end)+';')
                 file_out.write('\n')
                 
-    data = [x_list, temp_out_list, temp_in_start_list, sun_day_power_list, lost_power_day_list]
+    data = [x_list, {'label':'Temp out', 'data':temp_out_list}, 
+                    {'label':'Temp inside', 'data':temp_in_start_list}, 
+                    {'label':'Sun Power of day', 'data':sun_day_power_list},
+                    {'label':'Heat loss', 'data': lost_power_day_list}]
     create_graph(data)
     
     
 def create_graph(data):
-    
+    name_fig = str(datetime.now())
     fig1 = plt.figure()
     x_series = data.pop(0)
-    #print(x_series)
     for y_series in data:
-        #print(y_series)
-        plt.plot(x_series, y_series)
+        plt.plot(x_series, y_series['data'], label=y_series['label'])
     plt.xlabel('date')
+    plt.legend()
     plt.title('Sun Power')
-    plt.show()
+    plt.savefig(name_fig+'.png', dpi=200)
+    #plt.show()
                 
                 
                 
