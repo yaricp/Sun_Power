@@ -106,16 +106,19 @@ class SunClass:
     PowerShowObject = "Icosphere" 
     SizeSunPowerObject = 4
     
-    ExportPowerToYML = ""
-    ExportEvery = 1.0
+    ExportThermoResultsFile = ""
+    FileTempOutSide = ""
+    TimeTick = 3600
     ExportDayFrom = 0
     ExportDayTo = 0
     ExportMonthFrom = 0
     ExportMonthTo = 0
     ExportYearFrom = 0
     ExportYearTo = 0
-    ExportStart = False
-    ExportStop = True
+    ListWorkFaces = ''
+    StartTempInside = 20.0
+    PowerHeatInside = 0.0
+    ExtMassInside = 0.0
 
     UseSkyTexture = False
     SkyTexture = "Sky Texture"
@@ -483,18 +486,23 @@ class SunPosSettings(bpy.types.PropertyGroup):
         step=1.00,
         default=Sun.SizeSunPowerObject)
         
-    ExportPowerToYML = StringProperty(
-        default=".config/blender/Exports/SunPower.yml",
+    ExportThermoResultsFile = StringProperty(
+        default=".config/blender/Exports/results.csv",
         subtype="FILE_PATH", 
-        name="Export File", 
+        name="ExportThermoResultsFile", 
         description="Export data to file")
+        
+    FileTempOutSide = StringProperty(
+        default=".config/blender/Exports/outside_temp.csv",
+        subtype="FILE_PATH", 
+        name="FileTempOutSide", 
+        description="file temperature outside")
     
-    ExportEvery = FloatProperty(
+    TimeTick = IntProperty(
         attr="",
-        name="Time Spread",
-        description="Time period in which to make export data",
-        precision=4,
-        soft_min=1.00, soft_max=24.00, step=1.00, default=23.00)
+        name="TimeTick",
+        description="Time period in which to make calculation lost power",
+        min=300, max=31104000, default=3600)
         
     ExportMonthFrom = IntProperty(
         attr="",
@@ -532,13 +540,31 @@ class SunPosSettings(bpy.types.PropertyGroup):
         description="export to year",
         min=1800, max=4000, default=2012)
         
-    ExportStart = bpy.props.BoolProperty(
-        description="Start Export Power",
-        default=False)
+    ListWorkFaces = StringProperty(
+        default="",
+        name="ListWorkFaces",
+        description="list of work faces")
         
-    ExportStop = bpy.props.BoolProperty(
-        description="Stop Export Power",
-        default=True)
+    StartTempInside = FloatProperty(
+        attr="",
+        name="StartTempInside",
+        description="Start temperature inside",
+        step=1.0,
+        default=20.0, precision=1)
+        
+    PowerHeatInside = FloatProperty(
+        attr="",
+        name="PowerHeatInside",
+        description="External power of heat inside",
+        step=1.0,
+        default=0.0, precision=1)
+        
+    ExtMassInside = FloatProperty(
+        attr="",
+        name="ExtMassInside",
+        description="External mass inside",
+        step=1.0,
+        default=0.0, precision=1)
 
 
 ############################################################################

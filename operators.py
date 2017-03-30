@@ -124,17 +124,20 @@ class ControlClass:
             sp.NorthOffset != Sun.NorthOffset or
             sp.Efficiency != Sun.Efficiency or
             sp.EffectiveAngle != Sun.EffectiveAngle or
-            sp.ExportPowerToYML != Sun.ExportPowerToYML or
-            sp.ExportEvery != Sun.ExportEvery or
+            sp.ExportThermoResultsFile != Sun.ExportThermoResultsFile or
+            sp.FileTempOutSide != Sun.FileTempOutSide or
+            sp.TimeTick != Sun.TimeTick or
             sp.ExportDayFrom != Sun.ExportDayFrom or
             sp.ExportDayTo != Sun.ExportDayTo or
             sp.ExportMonthFrom != Sun.ExportMonthFrom or
             sp.ExportMonthTo != Sun.ExportMonthTo or
             sp.ExportYearFrom != Sun.ExportYearFrom or
             sp.ExportYearTo != Sun.ExportYearTo or
-            sp.ExportStart != Sun.ExportStart or
-            sp.ExportStop != Sun.ExportStop or
-            sp.SizeSunPowerObject != Sun.SizeSunPowerObject
+            sp.SizeSunPowerObject != Sun.SizeSunPowerObject or
+            sp.ListWorkFaces != Sun.ListWorkFaces or
+            sp.StartTempInside != Sun.StartTempInside or
+            sp.PowerHeatInside != Sun.PowerHeatInside or
+            sp.ExtMassInside != Sun.ExtMassInside
             ):
 
             Sun.Time = sp.Time
@@ -158,17 +161,20 @@ class ControlClass:
             Sun.NorthOffset = sp.NorthOffset
             Sun.Efficiency = sp.Efficiency
             Sun.EffectiveAngle = sp.EffectiveAngle
-            Sun.ExportPowerToYML = sp.ExportPowerToYML
-            Sun.ExportEvery = sp.ExportEvery
+            Sun.ExportThermoResultsFile = sp.ExportThermoResultsFile
+            Sun.FileTempOutSide = sp.FileTempOutSide
+            Sun.TimeTick = sp.TimeTick
             Sun.ExportDayFrom = sp.ExportDayFrom
             Sun.ExportDayTo = sp.ExportDayTo
             Sun.ExportMonthFrom = sp.ExportMonthFrom
             Sun.ExportMonthTo = sp.ExportMonthTo
             Sun.ExportYearFrom = sp.ExportYearFrom
             Sun.ExportYearTo = sp.ExportYearTo
-            Sun.ExportStart = sp.ExportStart
-            Sun.ExportStop = sp.ExportStop
             Sun.SizeSunPowerObject = sp.SizeSunPowerObject
+            Sun.ListWorkFaces = sp.ListWorkFaces
+            Sun.StartTempInside = sp.StartTempInside
+            Sun.PowerHeatInside = sp.PowerHeatInside
+            Sun.ExtMassInside = sp.ExtMassInside
             
             return True
         return False
@@ -323,12 +329,7 @@ class SunPos_OT_create_new_obj(bpy.types.Operator):
         for v in bm.verts:
             if v.co.z<0:
                 del_vertices_select.append(v)
-            elif v.co.z==0:
-                v.select = True
-                floor_verts.append(v)
-        print(floor_verts)
         bmesh.ops.delete(bm, geom=del_vertices_select, context=1)
-        bm.faces.new(floor_verts)
         bmesh.update_edit_mesh(obj.data, True)
         bpy.ops.object.mode_set(mode='OBJECT')
         Sun.PowerObject_verified = True

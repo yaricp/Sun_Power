@@ -532,15 +532,21 @@ class SunPos_Panel(bpy.types.Panel):
         row.alignment = 'CENTER'
         col = row.column(align=True)
         col.label(text="Export Sun Power into Yml file")
-        split = col.split(percentage=.5)
-        cL = split.column()
-        cR = split.column()
-        cL.alignment = 'LEFT'
-        cR.alignment = 'RIGHT'
-        cLi = cRi = 1
-        cR.prop(sp, "ExportPowerToYML", 
-                text="Export File")
-        cL.prop(sp, "ExportEvery", text="Period, hour")
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        col.prop(sp, "FileTempOutSide", text="file temperature outside csv")
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        col.prop(sp, "ExportThermoResultsFile", text="Export File csv")
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        col.prop(sp, "TimeTick", text="Time period calc, sec")
         toprow = box.row()
         row = toprow.row(align=False)
         row.alignment = 'CENTER'
@@ -563,9 +569,18 @@ class SunPos_Panel(bpy.types.Panel):
         cL.prop(sp, "ExportYearFrom", text="Exp Year From")
         cRi += 1
         cLi += 1
-        cL.operator('sunpos.start_export', 'Start Exp')
-        cR.operator('sunpos.stop_export', 'Stop Exp')
-        # Calc table
+        cR.prop(sp, "PowerHeatInside", text="Ext power of heat inside")
+        cL.prop(sp, "ExtMassInside", text="Ext mass inside")
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        col.prop(sp, "StartTempInside", text="Start temperature inside")
+        toprow = box.row()
+        row = toprow.row(align=False)
+        row.alignment = 'CENTER'
+        col = row.column(align=True)
+        col.prop(sp, "ListWorkFaces", text="numbers of work faces divided by comma")
         toprow = box.row()
         row = toprow.row(align=False)
         row.alignment = 'CENTER'

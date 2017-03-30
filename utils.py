@@ -248,17 +248,16 @@ def calc_table(Sun):
     max_day_power_list = []
     lost_power_day_list = []
     #max_lost_power_day_list = []
-    time_tick = 60*60    #1 hours
-    temp_in_start = FIRST_TEMP_IN
-    power_in_heat = POWER_INSIDE
-    Mass = MASS_INSIDE
+    time_tick = Sun.TimeTick    #1 hours
+    temp_in_start = Sun.StartTempInside
+    power_in_heat = Sun.PowerHeatInside
+    Mass = Sun.ExtMassInside
     path = os.path.dirname(os.path.realpath(__file__))
-    filename = os.path.join(path,'table_temp_2016.csv')
     count_x = 0
-    with open(filename,'r') as file_in:
+    with open(Sun.FileTempOutSide,'r') as file_in:
         for line in file_in.readlines():
             count_x+=1
-            with open('out_data.csv', 'a') as file_out:
+            with open(Sun.ExportThermoResultsFile, 'a') as file_out:
                 cols = line.split(',')
                 if len(cols)>4:
                     if '−' in cols[3]:
