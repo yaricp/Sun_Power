@@ -216,7 +216,8 @@ class SunClass:
             myFontOb = bpy.context.object
             myFontOb.data.body = "0"
             myFontOb.name = text_name
-            myFontOb.data.align = 'CENTER'
+            #print(myFontOb.data.__dict__)
+            #myFontOb.data.align = 'CENTER'
             myFontOb.scale = (0.3,0.3,0.3)
             obj.rotation_mode = 'QUATERNION'
             cam_norm = obj.rotation_quaternion * poly.normal

@@ -4,8 +4,8 @@ import bpy, colorsys
 from math import pi, sin, cos, degrees
 from mathutils import Vector    #,Matrix 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
+#import matplotlib.pyplot as plt
+#import matplotlib.animation as animation
 
 
 from . settings import *
@@ -326,17 +326,17 @@ def calc_table(Sun):
     create_graph(data)
     
     
-def create_graph(data):
-    name_fig = str(datetime.now())
-    fig1 = plt.figure()
-    x_series = data.pop(0)
-    for y_series in data:
-        plt.plot(x_series, y_series['data'], label=y_series['label'])
-    plt.xlabel('date')
-    plt.legend()
-    plt.title('Sun Power')
-    plt.savefig(name_fig+'.png', dpi=200)
-    #plt.show()
+#def create_graph(data):
+#    name_fig = str(datetime.now())
+#    fig1 = plt.figure()
+#    x_series = data.pop(0)
+#    for y_series in data:
+#        plt.plot(x_series, y_series['data'], label=y_series['label'])
+#    plt.xlabel('date')
+#    plt.legend()
+#    plt.title('Sun Power')
+#    plt.savefig(name_fig+'.png', dpi=200)
+#    #plt.show()
                 
                 
                 

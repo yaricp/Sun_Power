@@ -35,7 +35,7 @@ bl_info = {
     "name": "Sun Power",
     "author": "Yaroslav Pisarev",
     "version": (0, 0, 1),
-    "blender": (2, 6, 5),
+    "blender": (2, 7, 8),
     "api": 53207,
     "location": "World > Sun Power",
     "description": "Show sun position and power with objects and/or sky texture",
